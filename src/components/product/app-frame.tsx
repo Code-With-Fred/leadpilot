@@ -14,7 +14,7 @@ export function AppFrame({
   title: string;
   subtitle?: string;
   children: ReactNode;
-  className?: string;
+  className?: string | undefined;
   toolbar?: ReactNode;
 }) {
   return (
