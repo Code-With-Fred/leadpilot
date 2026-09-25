@@ -57,7 +57,7 @@ export function Navbar() {
             <li key={item.label}>
               <Link
                 to={item.to}
-                hash={"hash" in item ? item.hash : undefined}
+                {...("hash" in item ? { hash: item.hash } : {})}
                 className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 activeOptions={{ exact: true }}
               >
@@ -94,7 +94,7 @@ export function Navbar() {
               <Link
                 key={item.label}
                 to={item.to}
-                hash={"hash" in item ? item.hash : undefined}
+                {...("hash" in item ? { hash: item.hash } : {})}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-surface-muted"
               >

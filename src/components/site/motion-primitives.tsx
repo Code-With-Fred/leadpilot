@@ -22,7 +22,7 @@ export function Reveal({
     <Comp
       className={className}
       initial={reduced ? false : { opacity: 0, y: 14 }}
-      whileInView={reduced ? undefined : { opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
     >
