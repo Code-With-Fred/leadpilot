@@ -41,7 +41,10 @@ export function OutreachLibrary() {
     setDeleting(item.id);
     const { error } = await supabase.from("saved_outreach").delete().eq("id", item.id);
     setDeleting(null);
-    if (error) return toast.error("Couldn't delete. Please try again.");
+    if (error) {
+      toast.error("Couldn't delete. Please try again.");
+      return;
+    }
     setItems((prev) => prev?.filter((i) => i.id !== item.id) ?? null);
     toast.success("Deleted");
   }
