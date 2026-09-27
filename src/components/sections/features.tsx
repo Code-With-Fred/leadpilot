@@ -48,7 +48,7 @@ export function FeaturesSection() {
             </button>
           ))}
         </div>
-        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:items-start">
+        <div className="mt-6 grid grid-cols-1 gap-8 [&>*]:min-w-0 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,2fr)] lg:items-start">
           <div>
             <h3 className="text-2xl font-semibold">{tab.title}</h3>
             <p className="mt-3 leading-relaxed text-muted-foreground">{tab.desc}</p>

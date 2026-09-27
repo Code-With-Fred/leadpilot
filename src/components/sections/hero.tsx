@@ -9,7 +9,7 @@ export function Hero() {
   return (
     <section className="relative overflow-hidden border-b border-border">
       <div aria-hidden className="pointer-events-none absolute inset-0 grid-backdrop opacity-60" />
-      <div className="container-page relative grid gap-12 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-14 lg:py-24">
+      <div className="container-page relative grid grid-cols-1 gap-12 py-12 sm:py-16 [&>*]:min-w-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-14 lg:py-24">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
