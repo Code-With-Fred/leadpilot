@@ -100,6 +100,6 @@ What we offer: ${data.offer}`;
 
     const m = text.match(/SUBJECT:\s*(.+)\n+BODY:\s*\n?([\s\S]*)/i);
     return m
-      ? { ok: true, subject: m[1].trim(), body: m[2].trim() }
+      ? { ok: true, subject: (m[1] ?? "").trim(), body: (m[2] ?? "").trim() }
       : { ok: true, subject: `Quick idea for ${data.company}`, body: text.trim() };
   });
