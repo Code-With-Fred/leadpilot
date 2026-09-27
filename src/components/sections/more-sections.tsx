@@ -49,7 +49,7 @@ export function PricingSection() {
     <Section id="pricing">
       <div className="container-page">
         <SectionHeading align="center" eyebrow="Pricing" title="Simple plans that grow with you" description="Start free. Upgrade when LeadPilot is booking meetings for you." />
-        <div className="mt-12 grid gap-6 lg:grid-cols-3">
+        <div className="mt-12 grid gap-6 md:grid-cols-3 md:gap-4 lg:gap-6">
           {plans.map((p) => (
             <div
               key={p.name}
