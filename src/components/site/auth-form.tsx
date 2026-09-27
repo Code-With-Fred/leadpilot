@@ -92,7 +92,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
               <Input id="email" name="email" type="email" autoComplete="email" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                {!signup ? <Link to="/forgot-password" className="text-xs font-medium text-primary hover:underline">Forgot password?</Link> : null}
+              </div>
               <Input id="password" name="password" type="password" autoComplete={signup ? "new-password" : "current-password"} />
             </div>
             {error ? (

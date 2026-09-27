@@ -2,6 +2,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, Copy, Loader2, PenLine } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
+import { SaveButton } from "@/components/product/save-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +16,7 @@ export function OutreachDrafter() {
   const [tone, setTone] = useState<(typeof tones)[number]>("professional");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<{ subject: string; body: string } | null>(null);
+  const [result, setResult] = useState<{ subject: string; body: string; title: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -34,7 +35,7 @@ export function OutreachDrafter() {
           offer: get("offer"), tone,
         },
       });
-      if (res.ok) setResult({ subject: res.subject, body: res.body });
+      if (res.ok) setResult({ subject: res.subject, body: res.body, title: `Message · ${get("contactName")} at ${get("company")}` });
       else setError(res.error);
     } catch {
       setError("Couldn't reach the drafting service. Please try again.");
@@ -94,9 +95,12 @@ export function OutreachDrafter() {
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">Draft</h2>
           {result ? (
-            <Button variant="ghost" size="sm" onClick={copy}>
-              {copied ? <Check className="size-4" /> : <Copy className="size-4" />} {copied ? "Copied" : "Copy"}
-            </Button>
+            <div className="flex gap-1">
+              <SaveButton title={result.title} content={{ type: "message", subject: result.subject, body: result.body }} />
+              <Button variant="ghost" size="sm" onClick={copy}>
+                {copied ? <Check className="size-4" /> : <Copy className="size-4" />} {copied ? "Copied" : "Copy"}
+              </Button>
+            </div>
           ) : null}
         </div>
         {loading ? (
