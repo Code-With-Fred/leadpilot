@@ -32,7 +32,7 @@ export const STAGES = ["new", "contacted", "warm", "interested", "qualified", "w
 export type Stage = (typeof STAGES)[number];
 
 export const stageLabel = (s: string): LeadStatus =>
-  ((s.charAt(0).toUpperCase() + s.slice(1)) as LeadStatus) ?? "New";
+  (s.charAt(0).toUpperCase() + s.slice(1)) as LeadStatus;
 
 export const INTENT_LABEL: Record<ReplyAnalysis["intent"], string> = {
   interested: "Interested",
