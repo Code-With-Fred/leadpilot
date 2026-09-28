@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      lead_replies: {
+        Row: {
+          analysis: Json
+          created_at: string
+          id: string
+          lead_id: string | null
+          reply: string
+          user_id: string
+        }
+        Insert: {
+          analysis: Json
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          reply: string
+          user_id?: string
+        }
+        Update: {
+          analysis?: Json
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          reply?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_replies_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          company: string
+          contact_email: string | null
+          contact_name: string | null
+          created_at: string
+          id: string
+          industry: string | null
+          last_contacted_at: string | null
+          location: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          research: Json | null
+          role: string | null
+          score: number | null
+          stage: string
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          company: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          last_contacted_at?: string | null
+          location?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          research?: Json | null
+          role?: string | null
+          score?: number | null
+          stage?: string
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Update: {
+          company?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          industry?: string | null
+          last_contacted_at?: string | null
+          location?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          research?: Json | null
+          role?: string | null
+          score?: number | null
+          stage?: string
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company: string | null
