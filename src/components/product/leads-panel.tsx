@@ -21,12 +21,12 @@ export function LeadsPanel({ leads }: { leads: LeadRow[] }) {
 
   async function add(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.company.trim()) return toast.error("Company name is required.");
+    if (!form.company.trim()) { toast.error("Company name is required."); return; }
     setSaving(true);
     const payload = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim() || null])) as typeof empty;
     const { error } = await supabase.from("leads").insert({ ...payload, company: form.company.trim() });
     setSaving(false);
-    if (error) return toast.error("Couldn't save the lead. Please try again.");
+    if (error) { toast.error("Couldn't save the lead. Please try again."); return; }
     toast.success(`${form.company} added`);
     setForm(empty);
     setOpen(false);

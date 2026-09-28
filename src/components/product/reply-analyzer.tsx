@@ -46,7 +46,7 @@ export function ReplyAnalyzer({ leads, fixedLeadId, onDone }: { leads: LeadRow[]
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (reply.trim().length < 3) return toast.error("Paste the prospect's reply first.");
+    if (reply.trim().length < 3) { toast.error("Paste the prospect's reply first."); return; }
     setBusy(true);
     setResult(null);
     try {
