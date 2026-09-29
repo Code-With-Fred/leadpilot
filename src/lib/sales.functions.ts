@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { extractJson, runModel } from "./ai.server";
-import type { LeadResearch, ReplyAnalysis } from "./leads";
+import type { LeadQualification, LeadResearch, ReplyAnalysis } from "./leads";
 
 type Fail = { ok: false; error: string };
 
@@ -16,6 +16,7 @@ function leadBlock(l: Record<string, unknown>) {
     `Website: ${l["website"] || "none"}`,
     `Stage: ${l["stage"]}`,
     `Rep notes: ${l["notes"] || "none"}`,
+    `Logged interactions: ${l["interactions"] || "none"}`,
   ].join("\n");
 }
 
@@ -37,7 +38,7 @@ Return ONLY JSON, no prose, with these keys:
 
 Lead:
 ${leadBlock(lead)}`;
-    const out = await runModel(prompt, apiKey);
+    const out = await runModel(prompt, apiKey, { json: true });
     if (!out.ok) return out;
     const j = extractJson<Record<string, unknown>>(out.text);
     if (!j) return { ok: false, error: "The AI returned an unreadable brief. Please try again." };
@@ -82,7 +83,7 @@ Return ONLY JSON: {"intent":one of ${INTENTS.join("|")},"sentiment":"positive|ne
 ${lead ? `\nLead context:\n${leadBlock(lead)}\n` : ""}
 Reply:
 """${data.reply}"""`;
-    const out = await runModel(prompt, apiKey);
+    const out = await runModel(prompt, apiKey, { json: true });
     if (!out.ok) return out;
     const j = extractJson<Record<string, unknown>>(out.text);
     if (!j) return { ok: false, error: "The AI returned an unreadable analysis. Please try again." };
@@ -147,4 +148,61 @@ Copilot:`;
     const out = await runModel(prompt, apiKey);
     if (!out.ok) return out;
     return { ok: true, text: out.text.trim() };
+  });
+
+const VERDICTS = ["qualified", "nurture", "disqualified", "needs_info"] as const;
+
+export const qualifyLead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ leadId: z.string().uuid(), interactions: z.string().trim().max(8000) }).parse(d),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true; qualification: LeadQualification } | Fail> => {
+    const apiKey = process.env["LOVABLE_API_KEY"];
+    if (!apiKey) return { ok: false, error: "AI isn't configured yet." };
+    const { data: lead, error } = await context.supabase.from("leads").select("*").eq("id", data.leadId).maybeSingle();
+    if (error || !lead) return { ok: false, error: "Lead not found." };
+    const { data: replies } = await context.supabase
+      .from("lead_replies").select("reply, created_at").eq("lead_id", data.leadId)
+      .order("created_at", { ascending: false }).limit(5);
+    const today = new Date().toISOString().slice(0, 10);
+    const history = (replies ?? []).map((r) => `- ${r.created_at.slice(0, 10)}: "${r.reply.slice(0, 400)}"`).join("\n");
+    const prompt = `Qualify this B2B sales lead using a BANT-style review (budget, authority, need, timing). Today is ${today}.
+Rules: use ONLY the profile and interactions below. If a criterion has no evidence, mark it "unknown" and say what to ask. Do not assume budget or authority from job titles alone unless clearly stated. The score must reflect evidence, not optimism: little evidence = low confidence.
+Return ONLY a JSON object:
+{"summary":"2-3 sentence qualification summary","verdict":"qualified|nurture|disqualified|needs_info","score":integer 0-100 fit and readiness,"confidence":"high|medium|low","budget":{"status":"yes|no|unknown","note":"short evidence or what to ask"},"authority":{"status":"yes|no|unknown","note":"..."},"need":{"status":"yes|no|unknown","note":"..."},"timing":{"status":"yes|no|unknown","note":"..."},"risks":["up to 3 short items"],"nextAction":"one specific next action","nextActionWhen":"e.g. today, within 2 days, in 2 weeks","suggestedStage":"new|contacted|warm|interested|qualified|won|lost","questionsToAsk":["up to 3 discovery questions"]}
+
+Lead profile:
+${leadBlock({ ...lead, interactions: null })}
+
+Recent interactions (rep's log):
+${data.interactions || "(none provided)"}
+${history ? `\nAnalyzed prospect replies:\n${history}` : ""}`;
+    const out = await runModel(prompt, apiKey, { json: true });
+    if (!out.ok) return out;
+    const j = extractJson<Record<string, unknown>>(out.text);
+    if (!j) return { ok: false, error: "The AI returned an unreadable summary. Please try again." };
+    const pick = <T extends string>(v: unknown, opts: readonly T[], d: T) => (opts.includes(v as T) ? (v as T) : d);
+    const crit = (v: unknown) => {
+      const o = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+      return { status: pick(o["status"], ["yes", "no", "unknown"] as const, "unknown"), note: String(o["note"] ?? "") };
+    };
+    const qualification: LeadQualification = {
+      summary: String(j["summary"] ?? ""),
+      verdict: pick(j["verdict"], VERDICTS, "needs_info"),
+      confidence: pick(j["confidence"], ["high", "medium", "low"] as const, "low"),
+      budget: crit(j["budget"]), authority: crit(j["authority"]), need: crit(j["need"]), timing: crit(j["timing"]),
+      risks: clampList(j["risks"], 3),
+      nextAction: String(j["nextAction"] ?? ""),
+      nextActionWhen: String(j["nextActionWhen"] ?? ""),
+      suggestedStage: pick(j["suggestedStage"], ["new", "contacted", "warm", "interested", "qualified", "won", "lost"] as const, lead.stage as "new"),
+      questionsToAsk: clampList(j["questionsToAsk"], 3),
+      generatedAt: new Date().toISOString(),
+    };
+    const score = Math.max(0, Math.min(100, Math.round(Number(j["score"]) || 0)));
+    const { error: upErr } = await context.supabase.from("leads")
+      .update({ qualification: qualification as never, interactions: data.interactions || null, score, updated_at: new Date().toISOString() })
+      .eq("id", data.leadId);
+    if (upErr) return { ok: false, error: "Couldn't save the summary. Please try again." };
+    return { ok: true, qualification };
   });

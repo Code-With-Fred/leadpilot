@@ -57,10 +57,12 @@ export type Database = {
           created_at: string
           id: string
           industry: string | null
+          interactions: string | null
           last_contacted_at: string | null
           location: string | null
           next_follow_up_at: string | null
           notes: string | null
+          qualification: Json | null
           research: Json | null
           role: string | null
           score: number | null
@@ -76,10 +78,12 @@ export type Database = {
           created_at?: string
           id?: string
           industry?: string | null
+          interactions?: string | null
           last_contacted_at?: string | null
           location?: string | null
           next_follow_up_at?: string | null
           notes?: string | null
+          qualification?: Json | null
           research?: Json | null
           role?: string | null
           score?: number | null
@@ -95,10 +99,12 @@ export type Database = {
           created_at?: string
           id?: string
           industry?: string | null
+          interactions?: string | null
           last_contacted_at?: string | null
           location?: string | null
           next_follow_up_at?: string | null
           notes?: string | null
+          qualification?: Json | null
           research?: Json | null
           role?: string | null
           score?: number | null
