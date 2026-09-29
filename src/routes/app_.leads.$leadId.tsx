@@ -4,6 +4,7 @@ import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { LeadQualifier } from "@/components/product/lead-qualifier";
 import { ReplyAnalyzer } from "@/components/product/reply-analyzer";
 import { ScoreBar } from "@/components/product/status-badge";
 import { meta } from "@/components/site/page-shell";
@@ -91,6 +92,11 @@ function LeadPage() {
               <Button size="sm" variant="outline" onClick={() => update({ last_contacted_at: new Date().toISOString(), stage: lead.stage === "new" ? "contacted" : lead.stage })}>Mark contacted today</Button>
             </div>
           </div>
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Qualification and next action</h2>
+          <LeadQualifier lead={lead} onChanged={load} onStage={(s) => update({ stage: s })} />
         </div>
 
         {r ? (
