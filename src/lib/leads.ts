@@ -28,6 +28,20 @@ export interface ReplyAnalysis {
   suggestedReply: string;
 }
 
+type Crit = { status: "yes" | "no" | "unknown"; note: string };
+export interface LeadQualification {
+  summary: string;
+  verdict: "qualified" | "nurture" | "disqualified" | "needs_info";
+  confidence: "high" | "medium" | "low";
+  budget: Crit; authority: Crit; need: Crit; timing: Crit;
+  risks: string[];
+  nextAction: string;
+  nextActionWhen: string;
+  suggestedStage: Stage;
+  questionsToAsk: string[];
+  generatedAt: string;
+}
+
 export const STAGES = ["new", "contacted", "warm", "interested", "qualified", "won", "lost"] as const;
 export type Stage = (typeof STAGES)[number];
 
