@@ -26,7 +26,8 @@ export function CsvImport({ onDone }: { onDone: () => void }) {
     if (f.size > 5_000_000) { toast.error("That file is over 5 MB. Split it into smaller files."); return; }
     const all = parseCsv(await f.text());
     if (all.length < 2) { toast.error("The file needs a header row and at least one lead."); return; }
-    const [h, ...body] = all;
+    const h = all[0] ?? [];
+    const body = all.slice(1);
     setHeaders(h); setRows(body.slice(0, MAX)); setMap(guessMapping(h)); setFileName(f.name);
     if (body.length > MAX) toast.warning(`Only the first ${MAX} rows will be imported.`);
   }
