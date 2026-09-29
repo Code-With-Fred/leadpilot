@@ -1,7 +1,7 @@
 export type AiText = { ok: true; text: string } | { ok: false; error: string };
 
 /** Streams a Responses call through the Lovable AI Gateway and returns the full text. */
-export async function runModel(prompt: string, apiKey: string): Promise<AiText> {
+export async function runModel(prompt: string, apiKey: string, opts: { json?: boolean; effort?: "low" | "medium" } = {}): Promise<AiText> {
   const res = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
     method: "POST",
     headers: {
@@ -11,11 +11,14 @@ export async function runModel(prompt: string, apiKey: string): Promise<AiText> 
     },
     body: JSON.stringify({
       model: "openai/gpt-6-astra",
+      instructions:
+        "You are a precise B2B sales assistant. Base every statement strictly on the data provided. Never invent facts, numbers, names or events. If information is missing, say it is unknown.",
       input: prompt,
       stream: true,
       store: false,
-      reasoning: { effort: "low", summary: "auto" },
+      reasoning: { effort: opts.effort ?? "medium", summary: "auto" },
       include: ["reasoning.encrypted_content"],
+      ...(opts.json ? { text: { format: { type: "json_object" } } } : {}),
     }),
   });
 
@@ -32,34 +35,45 @@ export async function runModel(prompt: string, apiKey: string): Promise<AiText> 
   let buf = "";
   let text = "";
   let refused = false;
+  let failed = false;
+  const handle = (frame: string) => {
+    for (const line of frame.split("\n")) {
+      if (!line.startsWith("data:")) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === "[DONE]") continue;
+      try {
+        const evt = JSON.parse(payload) as { type?: string; delta?: string };
+        if (evt.type === "response.output_text.delta" && evt.delta) text += evt.delta;
+        else if (evt.type === "response.refusal.delta") refused = true;
+        else if (evt.type === "response.failed" || evt.type === "error") failed = true;
+      } catch {
+        /* ignore partial */
+      }
+    }
+  };
   for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
-    buf += decoder.decode(value, { stream: true });
+    buf += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
     let idx;
     while ((idx = buf.indexOf("\n\n")) !== -1) {
-      const frame = buf.slice(0, idx);
+      handle(buf.slice(0, idx));
       buf = buf.slice(idx + 2);
-      for (const line of frame.split("\n")) {
-        if (!line.startsWith("data:")) continue;
-        const payload = line.slice(5).trim();
-        if (!payload || payload === "[DONE]") continue;
-        try {
-          const evt = JSON.parse(payload) as { type?: string; delta?: string };
-          if (evt.type === "response.output_text.delta" && evt.delta) text += evt.delta;
-          if (evt.type === "response.refusal.delta") refused = true;
-        } catch {
-          /* ignore partial */
-        }
-      }
     }
   }
+  if (buf.trim()) handle(buf);
 
-  if (refused || !text.trim()) return { ok: false, error: "The AI declined this request. Try adjusting the details." };
+  if (refused) return { ok: false, error: "The AI declined this request. Try adjusting the details." };
+  if (failed || !text.trim()) return { ok: false, error: "The AI couldn't finish this. Please try again." };
   return { ok: true, text };
 }
 
 export function extractJson<T>(text: string): T | null {
+  try {
+    return JSON.parse(text.trim()) as T;
+  } catch {
+    /* fall back to slicing */
+  }
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
   if (start < 0 || end <= start) return null;
