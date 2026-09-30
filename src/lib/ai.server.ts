@@ -103,7 +103,7 @@ export async function consumeCredit(supabase: Sb, kind: string): Promise<{ ok: t
     };
   }
   const { data: ws } = await supabase.from("workspaces").select("name, industry, website, offer, target_customer, value_proposition, tone").limit(1).maybeSingle();
-  const w = ws as Record<string, string | null> | null;
+  const w = ws as { name: string; industry: string | null; website: string | null; offer: string | null; target_customer: string | null; value_proposition: string | null; tone: string | null } | null;
   const lines = w
     ? [
         ["Our company", w.name], ["Our industry", w.industry], ["Our website", w.website], ["What we sell", w.offer],
