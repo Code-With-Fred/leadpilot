@@ -18,6 +18,7 @@ import { Route as ProductRouteImport } from './routes/product'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as AppOnboardingRouteImport } from './routes/app_.onboarding'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app_.leads.$leadId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const SolutionsRoute = SolutionsRouteImport.update({
   path: '/solutions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/app_/onboarding',
+  path: '/app/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/app_/leads/$leadId',
   path: '/app/leads/$leadId',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/app_/onboarding': typeof AppOnboardingRoute
   '/app_/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/solutions'
+    | '/app/onboarding'
     | '/app/leads/$leadId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/solutions'
+    | '/app/onboarding'
     | '/app/leads/$leadId'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/solutions'
+    | '/app_/onboarding'
     | '/app_/leads/$leadId'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SolutionsRoute: typeof SolutionsRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
   AppLeadsLeadIdRoute: typeof AppLeadsLeadIdRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app_/onboarding': {
+      id: '/app_/onboarding'
+      path: '/app/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app_/leads/$leadId': {
       id: '/app_/leads/$leadId'
       path: '/app/leads/$leadId'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SolutionsRoute: SolutionsRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
   AppLeadsLeadIdRoute: AppLeadsLeadIdRoute,
 }
 export const routeTree = rootRouteImport
