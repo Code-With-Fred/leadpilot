@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { extractJson, runModel } from "./ai.server";
+import { consumeCredit, extractJson, runModel } from "./ai.server";
 import type { LeadQualification, LeadResearch, ReplyAnalysis } from "./leads";
 
 type Fail = { ok: false; error: string };
@@ -38,7 +38,9 @@ Return ONLY JSON, no prose, with these keys:
 
 Lead:
 ${leadBlock(lead)}`;
-    const out = await runModel(prompt, apiKey, { json: true });
+    const gate = await consumeCredit(context.supabase as never, "research");
+    if (!gate.ok) return gate;
+    const out = await runModel(gate.business + prompt, apiKey, { json: true });
     if (!out.ok) return out;
     const j = extractJson<Record<string, unknown>>(out.text);
     if (!j) return { ok: false, error: "The AI returned an unreadable brief. Please try again." };
@@ -83,7 +85,9 @@ Return ONLY JSON: {"intent":one of ${INTENTS.join("|")},"sentiment":"positive|ne
 ${lead ? `\nLead context:\n${leadBlock(lead)}\n` : ""}
 Reply:
 """${data.reply}"""`;
-    const out = await runModel(prompt, apiKey, { json: true });
+    const gate = await consumeCredit(context.supabase as never, "reply_analysis");
+    if (!gate.ok) return gate;
+    const out = await runModel(gate.business + prompt, apiKey, { json: true });
     if (!out.ok) return out;
     const j = extractJson<Record<string, unknown>>(out.text);
     if (!j) return { ok: false, error: "The AI returned an unreadable analysis. Please try again." };
@@ -145,7 +149,9 @@ Conversation:
 ${convo}
 
 Copilot:`;
-    const out = await runModel(prompt, apiKey);
+    const gate = await consumeCredit(context.supabase as never, "copilot");
+    if (!gate.ok) return gate;
+    const out = await runModel(gate.business + prompt, apiKey);
     if (!out.ok) return out;
     return { ok: true, text: out.text.trim() };
   });
@@ -178,7 +184,9 @@ ${leadBlock({ ...lead, interactions: null })}
 Recent interactions (rep's log):
 ${data.interactions || "(none provided)"}
 ${history ? `\nAnalyzed prospect replies:\n${history}` : ""}`;
-    const out = await runModel(prompt, apiKey, { json: true });
+    const gate = await consumeCredit(context.supabase as never, "qualification");
+    if (!gate.ok) return gate;
+    const out = await runModel(gate.business + prompt, apiKey, { json: true });
     if (!out.ok) return out;
     const j = extractJson<Record<string, unknown>>(out.text);
     if (!j) return { ok: false, error: "The AI returned an unreadable summary. Please try again." };

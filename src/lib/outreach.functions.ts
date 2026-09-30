@@ -44,7 +44,9 @@ Prospect:
 
 What we offer: ${data.offer}`;
 
-    const out = await runModel(prompt, apiKey);
+    const gate = await consumeCredit(context.supabase as never, "draft_message");
+    if (!gate.ok) return gate;
+    const out = await runModel(gate.business + prompt, apiKey);
     if (!out.ok) return out;
     const text = out.text;
     const m = text.match(/SUBJECT:\s*(.+)\n+BODY:\s*\n?([\s\S]*)/i);
@@ -83,7 +85,9 @@ Prospect:
 - Notes / signals: ${data.notes || "none"}
 
 What we offer: ${data.offer}`;
-    const out = await runModel(prompt, apiKey);
+    const gate = await consumeCredit(context.supabase as never, "draft_sequence");
+    if (!gate.ok) return gate;
+    const out = await runModel(gate.business + prompt, apiKey);
     if (!out.ok) return out;
     const raw = out.text.slice(out.text.indexOf("["), out.text.lastIndexOf("]") + 1);
     try {
