@@ -1,0 +1,2 @@
+REVOKE UPDATE ON public.workspaces FROM authenticated;
+GRANT UPDATE (name, industry, website, offer, target_customer, value_proposition, tone, onboarded_at, updated_at) ON public.workspaces TO authenticated;
