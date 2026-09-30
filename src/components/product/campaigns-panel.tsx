@@ -46,7 +46,7 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
   async function remove(c: Campaign) {
     if (!confirm(`Delete "${c.name}"? Its scheduled follow-ups will be removed too.`)) return;
     const { error } = await supabase.from("campaigns").delete().eq("id", c.id);
-    if (error) return toast.error("Couldn't delete the campaign.");
+    if (error) { toast.error("Couldn't delete the campaign."); return; }
     toast.success("Campaign deleted");
     window.dispatchEvent(new Event(FOLLOWUPS_EVENT));
     void load();
@@ -54,7 +54,7 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
 
   async function setStatus(c: Campaign, status: Campaign["status"]) {
     const { error } = await supabase.from("campaigns").update({ status, updated_at: new Date().toISOString() }).eq("id", c.id);
-    if (error) return toast.error("Couldn't update the campaign.");
+    if (error) { toast.error("Couldn't update the campaign."); return; }
     void load();
   }
 
@@ -208,7 +208,7 @@ function AddLeads({ campaign, leads, onDone }: { campaign: Campaign; leads: Lead
           channel: s.channel, subject: s.subject || null, body: s.body, due_at: new Date(now + s.day * DAY).toISOString(),
         }))),
       );
-      if (a.error || b.error) { setBusy(false); return toast.error("Couldn't add those leads. Please try again."); }
+      if (a.error || b.error) { setBusy(false); toast.error("Couldn't add those leads. Please try again."); return; }
       await supabase.from("leads").update({ next_follow_up_at: new Date(now + (steps[0]?.day ?? 0) * DAY).toISOString() }).in("id", fresh).is("next_follow_up_at", null);
     }
     setBusy(false);

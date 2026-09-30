@@ -29,8 +29,8 @@ export async function fetchMonthlyUsage(workspaceId: string) {
 export type BusinessProfile = Pick<Workspace, "name" | "industry" | "website" | "offer" | "target_customer" | "value_proposition" | "tone">;
 
 export async function saveBusinessProfile(id: string, p: BusinessProfile, finishOnboarding = false) {
-  const patch: Record<string, unknown> = { ...p, updated_at: new Date().toISOString() };
-  if (finishOnboarding) patch["onboarded_at"] = new Date().toISOString();
+  const patch: BusinessProfile & { updated_at: string; onboarded_at?: string } = { ...p, updated_at: new Date().toISOString() };
+  if (finishOnboarding) patch.onboarded_at = new Date().toISOString();
   const { error } = await supabase.from("workspaces").update(patch).eq("id", id);
   if (error) throw error;
 }

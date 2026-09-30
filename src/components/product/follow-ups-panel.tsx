@@ -39,7 +39,7 @@ export function FollowUpsPanel() {
   async function complete(r: Row, status: "done" | "skipped") {
     const now = new Date().toISOString();
     const { error } = await supabase.from("follow_ups").update({ status, completed_at: now }).eq("id", r.id);
-    if (error) return toast.error("Couldn't update. Please try again.");
+    if (error) { toast.error("Couldn't update. Please try again."); return; }
     const { data: next } = await supabase.from("follow_ups").select("due_at").eq("lead_id", r.lead_id).eq("status", "scheduled").order("due_at").limit(1).maybeSingle();
     const patch: { next_follow_up_at: string | null; last_contacted_at?: string; stage?: string } = { next_follow_up_at: next?.due_at ?? null };
     if (status === "done") patch.last_contacted_at = now;
