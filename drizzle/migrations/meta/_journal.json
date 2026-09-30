@@ -29,6 +29,13 @@
       "when": 1790701268847,
       "tag": "0003_lead_qualification",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790755617055,
+      "tag": "0004_workspaces_campaigns_usage",
+      "breakpoints": true
     }
   ]
 }
