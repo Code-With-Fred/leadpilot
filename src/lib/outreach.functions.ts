@@ -14,7 +14,7 @@ const LeadInput = z.object({
   tone: z.enum(["friendly", "professional", "direct"]).default("professional"),
 });
 
-import { runModel } from "./ai.server";
+import { consumeCredit, runModel } from "./ai.server";
 
 export type DraftResult =
   | { ok: true; subject: string; body: string }
@@ -23,7 +23,7 @@ export type DraftResult =
 export const draftOutreach = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => LeadInput.parse(d))
-  .handler(async ({ data }): Promise<DraftResult> => {
+  .handler(async ({ data, context }): Promise<DraftResult> => {
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) return { ok: false, error: "AI drafting isn't configured yet." };
 
@@ -65,7 +65,7 @@ export type SequenceResult = { ok: true; steps: SequenceStep[] } | { ok: false; 
 export const draftSequence = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SequenceInput.parse(d))
-  .handler(async ({ data }): Promise<SequenceResult> => {
+  .handler(async ({ data, context }): Promise<SequenceResult> => {
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) return { ok: false, error: "AI drafting isn't configured yet." };
     const prompt = `Plan a personalized outreach sequence of exactly ${data.steps} touches spread over ${data.days} days for a sales rep.

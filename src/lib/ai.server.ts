@@ -83,3 +83,33 @@ export function extractJson<T>(text: string): T | null {
     return null;
   }
 }
+
+type Sb = { rpc: (fn: "consume_ai_credit", args: { _kind: string }) => PromiseLike<{ data: unknown; error: unknown }>; from: (t: "workspaces") => any };
+
+/** Checks + records one AI use against the workspace's monthly plan limit, and returns the business profile for prompts. */
+export async function consumeCredit(supabase: Sb, kind: string): Promise<{ ok: true; business: string } | { ok: false; error: string }> {
+  const { data, error } = await supabase.rpc("consume_ai_credit", { _kind: kind });
+  if (error) {
+    console.error("consume_ai_credit", error);
+    return { ok: false, error: "Couldn't check your AI usage. Please try again." };
+  }
+  const r = data as { ok: boolean; reason?: string; limit?: number };
+  if (!r.ok) {
+    return {
+      ok: false,
+      error: r.reason === "limit"
+        ? `You've used all ${r.limit} AI actions included in your plan this month. Upgrade your plan or wait until next month.`
+        : "Your account isn't linked to a workspace yet. Please refresh and try again.",
+    };
+  }
+  const { data: ws } = await supabase.from("workspaces").select("name, industry, website, offer, target_customer, value_proposition, tone").limit(1).maybeSingle();
+  const w = ws as Record<string, string | null> | null;
+  const lines = w
+    ? [
+        ["Our company", w.name], ["Our industry", w.industry], ["Our website", w.website], ["What we sell", w.offer],
+        ["Our ideal customer", w.target_customer], ["Why customers pick us", w.value_proposition], ["Preferred tone", w.tone],
+      ].filter(([, v]) => v)
+    : [];
+  const business = lines.length ? `About the seller (use when relevant):\n${lines.map(([k, v]) => `- ${k}: ${v}`).join("\n")}\n\n` : "";
+  return { ok: true, business };
+}
