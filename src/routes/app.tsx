@@ -34,7 +34,7 @@ export const Route = createFileRoute("/app")({
     if (!workspace.onboarded_at) throw redirect({ to: "/app/onboarding" });
     return { email: data.user.email ?? "", name: profile?.full_name ?? "", workspace };
   },
-  errorComponent: ({ error }) => <p className="p-8 text-sm text-destructive">{error.message}</p>,
+  errorComponent: ({ error }) => <p className="p-8 text-sm text-destructive">{(error as Error).message}</p>,
   component: AppPage,
 });
 
