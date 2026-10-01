@@ -16,7 +16,7 @@ export const Route = createFileRoute("/app_/onboarding")({
     if (!workspace) throw new Error("No workspace found for this account.");
     return { workspace };
   },
-  errorComponent: ({ error }) => <p className="p-8 text-sm text-destructive">{error.message} Please refresh the page.</p>,
+  errorComponent: ({ error }) => <p className="p-8 text-sm text-destructive">{(error as Error).message} Please refresh the page.</p>,
   component: Onboarding,
 });
 
