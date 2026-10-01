@@ -18,6 +18,7 @@ import { CampaignsPanel } from "@/components/product/campaigns-panel";
 import { FollowUpsPanel } from "@/components/product/follow-ups-panel";
 import { SettingsPanel } from "@/components/product/settings-panel";
 import { fetchWorkspace } from "@/lib/workspace";
+import { GettingStarted } from "@/components/product/getting-started";
 
 export const Route = createFileRoute("/app")({
   ssr: false,
@@ -65,6 +66,7 @@ function AppPage() {
           <h1 className="text-2xl font-semibold sm:text-3xl">Good to see you{name ? `, ${name.split(" ")[0]}` : ""}</h1>
           <p className="mt-1 text-muted-foreground">Organize your pipeline, qualify leads and write outreach.</p>
         </div>
+        {!loading && <GettingStarted leads={leads} onGo={setTab} />}
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="flex h-auto flex-wrap justify-start">
             <TabsTrigger value="today">Today</TabsTrigger>
