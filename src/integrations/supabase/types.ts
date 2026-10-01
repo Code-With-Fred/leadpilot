@@ -298,24 +298,35 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_workspace_id: string | null
           company: string | null
           created_at: string
           full_name: string | null
           id: string
         }
         Insert: {
+          active_workspace_id?: string | null
           company?: string | null
           created_at?: string
           full_name?: string | null
           id: string
         }
         Update: {
+          active_workspace_id?: string | null
           company?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_active_workspace_id_fkey"
+            columns: ["active_workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_outreach: {
         Row: {
@@ -380,6 +391,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "usage_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          created_by: string
+          email: string
+          expires_at: string
+          id: string
+          role: string
+          token: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string
+          email: string
+          expires_at?: string
+          id?: string
+          role?: string
+          token?: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          role?: string
+          token?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invites_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -469,9 +524,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_workspace_invite: { Args: { _token: string }; Returns: Json }
       consume_ai_credit: { Args: { _kind: string }; Returns: Json }
       current_workspace_id: { Args: never; Returns: string }
       is_workspace_member: { Args: { _ws: string }; Returns: boolean }
+      workspace_member_list: {
+        Args: { _ws: string }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
       workspace_role: { Args: { _ws: string }; Returns: string }
     }
     Enums: {

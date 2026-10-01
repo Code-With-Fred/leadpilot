@@ -43,6 +43,13 @@
       "when": 1790755627849,
       "tag": "0005_lock_workspace_plan",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790890413896,
+      "tag": "0006_workspace_invites",
+      "breakpoints": true
     }
   ]
 }
