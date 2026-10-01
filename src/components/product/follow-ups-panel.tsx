@@ -1,3 +1,4 @@
+import { currentWorkspaceId } from "@/lib/workspace";
 import { Link } from "@tanstack/react-router";
 import { Check, Copy, SkipForward } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
@@ -22,10 +23,11 @@ export function FollowUpsPanel() {
 
   const load = useCallback(async () => {
     setError("");
+    const ws = (await currentWorkspaceId()) ?? "";
     const { data, error } = await supabase
       .from("follow_ups")
       .select("id, lead_id, step, channel, subject, body, due_at, leads(company, contact_name, contact_email), campaigns(name)")
-      .eq("status", "scheduled").order("due_at").limit(200);
+      .eq("workspace_id", ws).eq("status", "scheduled").order("due_at").limit(200);
     if (error) setError("Couldn't load follow-ups.");
     else setRows(data as unknown as Row[]);
     setLoading(false);

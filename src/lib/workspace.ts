@@ -7,8 +7,19 @@ export const PLAN_LIMITS: Record<string, number> = { starter: 50, growth: 1000, 
 export const planLabel = (p: string) => p.charAt(0).toUpperCase() + p.slice(1);
 
 /** The signed-in user's workspace (first membership). */
+let cachedId: Promise<string | null> | null = null;
+/** Active workspace id for the signed-in user (cached per page load). */
+export function currentWorkspaceId(): Promise<string | null> {
+  cachedId ??= Promise.resolve(supabase.rpc("current_workspace_id")).then(({ data }) => (data as string | null) ?? null);
+  return cachedId;
+}
+export const resetWorkspaceCache = () => { cachedId = null; };
+
 export async function fetchWorkspace(): Promise<Workspace | null> {
-  const { data, error } = await supabase.from("workspaces").select("*").order("created_at").limit(1).maybeSingle();
+  resetWorkspaceCache();
+  const id = await currentWorkspaceId();
+  if (!id) return null;
+  const { data, error } = await supabase.from("workspaces").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data;
 }

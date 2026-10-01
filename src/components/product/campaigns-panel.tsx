@@ -1,3 +1,4 @@
+import { currentWorkspaceId } from "@/lib/workspace";
 import { Loader2, Plus, Trash2, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -28,9 +29,10 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
 
   const load = useCallback(async () => {
     setError("");
+    const ws = (await currentWorkspaceId()) ?? "";
     const [c, cl] = await Promise.all([
-      supabase.from("campaigns").select("*").order("created_at", { ascending: false }),
-      supabase.from("campaign_leads").select("campaign_id").neq("status", "removed"),
+      supabase.from("campaigns").select("*").eq("workspace_id", ws).order("created_at", { ascending: false }),
+      supabase.from("campaign_leads").select("campaign_id").eq("workspace_id", ws).neq("status", "removed"),
     ]);
     if (c.error || cl.error) setError("Couldn't load campaigns.");
     else {

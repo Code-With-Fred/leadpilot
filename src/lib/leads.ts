@@ -1,3 +1,4 @@
+import { currentWorkspaceId } from "@/lib/workspace";
 import { useCallback, useEffect, useState } from "react";
 
 import type { LeadStatus } from "@/components/product/status-badge";
@@ -67,7 +68,8 @@ export function useLeads() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+    const ws = await currentWorkspaceId();
+    const { data, error } = await supabase.from("leads").select("*").eq("workspace_id", ws ?? "").order("created_at", { ascending: false });
     if (error) setError("Couldn't load your leads.");
     else {
       setError(null);
