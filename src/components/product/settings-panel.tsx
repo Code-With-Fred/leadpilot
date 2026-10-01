@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { BusinessProfileForm } from "@/components/product/business-profile-form";
+import { TeamPanel } from "@/components/product/team-panel";
 import { Progress } from "@/components/ui/progress";
 import { fetchMonthlyUsage, PLAN_LIMITS, planLabel, type Workspace } from "@/lib/workspace";
 
@@ -18,6 +19,7 @@ export function SettingsPanel({ workspace }: { workspace: Workspace }) {
         <p className="mb-4 text-sm text-muted-foreground">Every AI tool uses these details when researching leads and writing messages.</p>
         <BusinessProfileForm workspace={workspace} />
       </section>
+      <div className="space-y-6">
       <section className="h-fit rounded-xl border border-border bg-background p-4 sm:p-6">
         <h2 className="text-lg font-semibold">Plan and usage</h2>
         <p className="mt-1 text-sm text-muted-foreground">Current plan: <span className="font-medium text-foreground">{planLabel(workspace.plan)}</span></p>
@@ -27,6 +29,8 @@ export function SettingsPanel({ workspace }: { workspace: Workspace }) {
         </div>
         <p className="mt-4 text-xs text-muted-foreground">Online payments aren't connected yet, so plans can't be upgraded from here.</p>
       </section>
+      <TeamPanel workspace={workspace} />
+      </div>
     </div>
   );
 }

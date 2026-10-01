@@ -19,6 +19,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as AppOnboardingRouteImport } from './routes/app_.onboarding'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app_.leads.$leadId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const AppOnboardingRoute = AppOnboardingRouteImport.update({
   path: '/app/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/app_/leads/$leadId',
   path: '/app/leads/$leadId',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRoutesByTo {
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRoutesById {
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/app_/onboarding': typeof AppOnboardingRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/app_/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/solutions'
     | '/app/onboarding'
+    | '/invite/$token'
     | '/app/leads/$leadId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/solutions'
     | '/app/onboarding'
+    | '/invite/$token'
     | '/app/leads/$leadId'
   id:
     | '__root__'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/solutions'
     | '/app_/onboarding'
+    | '/invite/$token'
     | '/app_/leads/$leadId'
   fileRoutesById: FileRoutesById
 }
@@ -170,6 +182,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SolutionsRoute: typeof SolutionsRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   AppLeadsLeadIdRoute: typeof AppLeadsLeadIdRoute
 }
 
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app_/leads/$leadId': {
       id: '/app_/leads/$leadId'
       path: '/app/leads/$leadId'
@@ -266,6 +286,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SolutionsRoute: SolutionsRoute,
   AppOnboardingRoute: AppOnboardingRoute,
+  InviteTokenRoute: InviteTokenRoute,
   AppLeadsLeadIdRoute: AppLeadsLeadIdRoute,
 }
 export const routeTree = rootRouteImport

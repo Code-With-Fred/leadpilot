@@ -1,3 +1,4 @@
+import { currentWorkspaceId } from "@/lib/workspace";
 import { Check, ChevronDown, Copy, Loader2, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -15,9 +16,11 @@ export function OutreachLibrary() {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    const ws = (await currentWorkspaceId()) ?? "";
     const { data, error } = await supabase
       .from("saved_outreach")
       .select("id, kind, title, content, created_at")
+      .eq("workspace_id", ws)
       .order("created_at", { ascending: false });
     if (error) return setError("Couldn't load your library. Please refresh.");
     setError("");
