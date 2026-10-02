@@ -37,24 +37,28 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
     if (password.length < 8) return setError("Password must be at least 8 characters.");
     setError("");
     setLoading(true);
+    // Same-origin relative return path (e.g. an assistant connection approval).
+    const rawNext = new URLSearchParams(window.location.search).get("next") ?? "";
+    const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
+    const go = () => (next ? void (window.location.href = next) : navigate({ to: "/app" }));
     try {
       if (signup) {
         const { data: res, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/app`, data: { full_name: fullName, company } },
+          options: { emailRedirectTo: `${window.location.origin}${next || "/app"}`, data: { full_name: fullName, company } },
         });
         if (error) return setError(friendly(error.message));
         if (res.user && res.user.identities?.length === 0)
           return setError("An account with this email already exists. Try logging in.");
-        if (res.session) return navigate({ to: "/app" });
+        if (res.session) return go();
         setSuccess(`Account created! We sent a confirmation link to ${email}. Click it to finish signing up.`);
         e.currentTarget?.reset?.();
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) return setError(friendly(error.message));
         setSuccess("Logged in! Taking you to your workspace…");
-        navigate({ to: "/app" });
+        go();
       }
     } catch {
       setError("Something went wrong. Check your connection and try again.");
