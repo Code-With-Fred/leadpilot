@@ -18,7 +18,7 @@ export function GettingStarted({ leads, onGo }: { leads: LeadRow[]; onGo: (tab: 
 
   const steps = [
     { done: true, label: "Tell LeadPilot about your business", tab: "settings" },
-    { done: leads.length > 0, label: "Add or import your first leads", tab: "leads" },
+    { done: leads.length > 0, label: "Find businesses that need you and save a few", tab: "find" },
     { done: leads.some((l) => l.research), label: "Research a lead to get a score and sales angle", tab: "leads" },
     { done: !!hasCampaign, label: "Put leads in a campaign so follow-ups get scheduled", tab: "campaigns" },
     { done: leads.some((l) => l.last_contacted_at), label: "Send your first message and mark it done", tab: "followups" },

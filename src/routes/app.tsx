@@ -18,6 +18,7 @@ import { CampaignsPanel } from "@/components/product/campaigns-panel";
 import { FollowUpsPanel } from "@/components/product/follow-ups-panel";
 import { SettingsPanel } from "@/components/product/settings-panel";
 import { fetchWorkspace } from "@/lib/workspace";
+import { FindLeadsPanel } from "@/components/product/find-leads-panel";
 import { GettingStarted } from "@/components/product/getting-started";
 
 export const Route = createFileRoute("/app")({
@@ -70,6 +71,7 @@ function AppPage() {
         <Tabs value={tab} onValueChange={setTab}>
           <TabsList className="flex h-auto flex-wrap justify-start">
             <TabsTrigger value="today">Today</TabsTrigger>
+            <TabsTrigger value="find">Find leads</TabsTrigger>
             <TabsTrigger value="leads">Leads{leads.length ? ` (${leads.length})` : ""}</TabsTrigger>
             <TabsTrigger value="followups">Follow-ups</TabsTrigger>
             <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
@@ -82,6 +84,7 @@ function AppPage() {
           {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
           <TabsContent value="today" className="mt-4">{loading ? <p className="text-sm text-muted-foreground">Loading…</p> : <CommandCenter leads={leads} onGoToLeads={() => setTab("leads")} />}</TabsContent>
           <TabsContent value="leads" className="mt-4">{loading ? <p className="text-sm text-muted-foreground">Loading…</p> : <LeadsPanel leads={leads} />}</TabsContent>
+          <TabsContent value="find" className="mt-4"><FindLeadsPanel /></TabsContent>
           <TabsContent value="followups" className="mt-4"><FollowUpsPanel /></TabsContent>
           <TabsContent value="campaigns" className="mt-4"><CampaignsPanel leads={leads} /></TabsContent>
           <TabsContent value="settings" className="mt-4"><SettingsPanel workspace={workspace} /></TabsContent>
