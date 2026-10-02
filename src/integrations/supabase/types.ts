@@ -232,10 +232,13 @@ export type Database = {
           location: string | null
           next_follow_up_at: string | null
           notes: string | null
+          phone: string | null
+          place_id: string | null
           qualification: Json | null
           research: Json | null
           role: string | null
           score: number | null
+          source: string
           stage: string
           updated_at: string
           user_id: string
@@ -254,10 +257,13 @@ export type Database = {
           location?: string | null
           next_follow_up_at?: string | null
           notes?: string | null
+          phone?: string | null
+          place_id?: string | null
           qualification?: Json | null
           research?: Json | null
           role?: string | null
           score?: number | null
+          source?: string
           stage?: string
           updated_at?: string
           user_id?: string
@@ -276,10 +282,13 @@ export type Database = {
           location?: string | null
           next_follow_up_at?: string | null
           notes?: string | null
+          phone?: string | null
+          place_id?: string | null
           qualification?: Json | null
           research?: Json | null
           role?: string | null
           score?: number | null
+          source?: string
           stage?: string
           updated_at?: string
           user_id?: string
