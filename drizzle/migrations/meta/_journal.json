@@ -57,6 +57,13 @@
       "when": 1790949784449,
       "tag": "0007_lead_discovery_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791147425946,
+      "tag": "0008_lead_messages_inbox",
+      "breakpoints": true
     }
   ]
 }
