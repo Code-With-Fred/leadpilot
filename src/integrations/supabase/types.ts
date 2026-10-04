@@ -174,6 +174,54 @@ export type Database = {
           },
         ]
       }
+      lead_messages: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          direction: string
+          id: string
+          lead_id: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          body: string
+          channel?: string
+          created_at?: string
+          direction: string
+          id?: string
+          lead_id: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          lead_id?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_replies: {
         Row: {
           analysis: Json
