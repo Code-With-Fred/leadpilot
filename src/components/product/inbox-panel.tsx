@@ -91,11 +91,11 @@ function Thread({ lead, messages, loading, onChange }: { lead: LeadRow; messages
 
   async function log(direction: "out" | "in", openWhatsApp = false) {
     const text = body.trim();
-    if (!text) return toast.error("Write the message first.");
+    if (!text) { toast.error("Write the message first."); return; }
     if (openWhatsApp) window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
     setSaving(direction);
     const { error } = await supabase.from("lead_messages").insert({ lead_id: lead.id, workspace_id: lead.workspace_id!, direction, channel, body: text });
-    if (error) { setSaving(null); return toast.error("Couldn't save the message. Try again."); }
+    if (error) { setSaving(null); toast.error("Couldn't save the message. Try again."); return; }
     const patch: Partial<LeadRow> = {};
     if (direction === "out") { patch.last_contacted_at = new Date().toISOString(); if (lead.stage === "new") patch.stage = "contacted"; }
     else if (lead.stage === "new" || lead.stage === "contacted") patch.stage = "warm";
@@ -108,7 +108,7 @@ function Thread({ lead, messages, loading, onChange }: { lead: LeadRow; messages
 
   async function remove(id: string) {
     const { error } = await supabase.from("lead_messages").delete().eq("id", id);
-    if (error) return toast.error("Couldn't delete it.");
+    if (error) { toast.error("Couldn't delete it."); return; }
     onChange();
   }
 
