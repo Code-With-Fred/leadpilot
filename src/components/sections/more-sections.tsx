@@ -16,7 +16,7 @@ const steps = [
   { n: "01", title: "Tell LeadPilot who you sell to", body: "Pick an industry, a location, or upload your own list." },
   { n: "02", title: "Review the research", body: "Every lead comes with a short brief and a fit score." },
   { n: "03", title: "Approve the outreach", body: "Edit or approve personalized messages in one click." },
-  { n: "04", title: "Take the meetings", body: "Follow ups run on their own until a prospect books a call." },
+  { n: "04", title: "Take the meetings", body: "Follow ups send on their own and stop the moment a prospect replies." },
 ];
 
 export function HowItWorksSection() {

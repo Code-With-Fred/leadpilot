@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Loader2, MessageCircle, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, Mail, MessageCircle, Play, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { sendLeadEmail, syncRepliesNow } from "@/lib/email.functions";
 import { notifyLeadsChanged, type LeadRow } from "@/lib/leads";
 import { currentWorkspaceId } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
@@ -24,16 +25,39 @@ export function InboxPanel({ leads }: { leads: LeadRow[] }) {
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [hasInbox, setHasInbox] = useState(false);
+  const [paused, setPaused] = useState<Set<string>>(new Set());
+  const [syncing, setSyncing] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const ws = await currentWorkspaceId();
-    const { data, error } = await supabase.from("lead_messages").select("*").eq("workspace_id", ws ?? "").order("created_at", { ascending: true }).limit(2000);
+    const ws = (await currentWorkspaceId()) ?? "";
+    const [{ data, error }, inbox, p] = await Promise.all([
+      supabase.from("lead_messages").select("*").eq("workspace_id", ws).order("created_at", { ascending: true }).limit(2000),
+      supabase.from("email_accounts").select("id", { count: "exact", head: true }).eq("workspace_id", ws).eq("status", "active"),
+      supabase.from("follow_ups").select("lead_id").eq("workspace_id", ws).eq("status", "paused"),
+    ]);
     if (error) setError("Couldn't load your conversations.");
     else { setError(null); setMsgs(data ?? []); }
+    setHasInbox((inbox.count ?? 0) > 0);
+    setPaused(new Set((p.data ?? []).map((r) => r.lead_id)));
     setLoading(false);
   }, []);
   useEffect(() => { void load(); }, [load]);
+
+  async function refresh() {
+    if (hasInbox) {
+      setSyncing(true);
+      try {
+        const r = await syncRepliesNow();
+        if (r.ok && r.found) { toast.success(`${r.found} new repl${r.found === 1 ? "y" : "ies"}`); notifyLeadsChanged(); }
+      } catch {
+        /* the list still refreshes below */
+      }
+      setSyncing(false);
+    }
+    await load();
+  }
 
   const byLead = useMemo(() => {
     const m = new Map<string, Msg[]>();
@@ -58,7 +82,7 @@ export function InboxPanel({ leads }: { leads: LeadRow[] }) {
       <aside className="rounded-xl border border-border bg-background p-3">
         <div className="mb-2 flex gap-2">
           <Input placeholder="Search leads" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search leads" />
-          <Button variant="ghost" size="icon" onClick={load} aria-label="Refresh"><RefreshCw className="size-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={refresh} disabled={syncing} aria-label={hasInbox ? "Check for new replies" : "Refresh"}><RefreshCw className={cn("size-4", syncing && "animate-spin")} /></Button>
         </div>
         {error && <p className="p-2 text-sm text-destructive">{error} <button className="underline" onClick={load}>Retry</button></p>}
         <ul className="max-h-[60vh] space-y-1 overflow-y-auto">
@@ -78,16 +102,48 @@ export function InboxPanel({ leads }: { leads: LeadRow[] }) {
           ))}
         </ul>
       </aside>
-      {current ? <Thread key={current.id} lead={current} messages={byLead.get(current.id) ?? []} loading={loading} onChange={load} /> : null}
+      {current ? <Thread key={`${current.id}-${hasInbox}`} lead={current} messages={byLead.get(current.id) ?? []} loading={loading} onChange={load} hasInbox={hasInbox} paused={paused.has(current.id)} /> : null}
     </div>
   );
 }
 
-function Thread({ lead, messages, loading, onChange }: { lead: LeadRow; messages: Msg[]; loading: boolean; onChange: () => void }) {
+function Thread({ lead, messages, loading, onChange, hasInbox, paused }: { lead: LeadRow; messages: Msg[]; loading: boolean; onChange: () => void; hasInbox: boolean; paused: boolean }) {
   const [body, setBody] = useState("");
-  const [channel, setChannel] = useState<string>(lead.phone ? "whatsapp" : lead.contact_email ? "email" : "other");
-  const [saving, setSaving] = useState<"out" | "in" | null>(null);
+  const [subject, setSubject] = useState("");
+  const [channel, setChannel] = useState<string>(hasInbox && lead.contact_email ? "email" : lead.phone ? "whatsapp" : lead.contact_email ? "email" : "other");
+  const [saving, setSaving] = useState<"out" | "in" | "email" | "resume" | null>(null);
   const phone = waNumber(lead.phone);
+  const canEmail = hasInbox && !!lead.contact_email && !lead.unsubscribed_at;
+  const emailedBefore = messages.some((m) => m.channel === "email" && m.email_account_id);
+
+  async function sendEmail() {
+    const text = body.trim();
+    if (!text) { toast.error("Write the message first."); return; }
+    if (!emailedBefore && !subject.trim()) { toast.error("Add a subject for the first email."); return; }
+    setSaving("email");
+    try {
+      const r = await sendLeadEmail({ data: { leadId: lead.id, subject: subject.trim(), body: text } });
+      if (!r.ok) { toast.error(r.error); setSaving(null); return; }
+      toast.success(`Sent from ${r.from}`);
+      setBody("");
+      setSubject("");
+      notifyLeadsChanged();
+      onChange();
+    } catch {
+      toast.error("Couldn't send. Please try again.");
+    }
+    setSaving(null);
+  }
+
+  async function resume() {
+    setSaving("resume");
+    const { data, error } = await supabase.rpc("resume_lead_sequence", { _lead: lead.id });
+    setSaving(null);
+    if (error) { toast.error("Couldn't resume. Please try again."); return; }
+    toast.success(`${data ?? 0} follow-up${data === 1 ? "" : "s"} rescheduled, starting tomorrow`);
+    notifyLeadsChanged();
+    onChange();
+  }
 
   async function log(direction: "out" | "in", openWhatsApp = false) {
     const text = body.trim();
@@ -121,12 +177,20 @@ function Thread({ lead, messages, loading, onChange }: { lead: LeadRow; messages
         </div>
         <Button variant="outline" size="sm" asChild><Link to="/app/leads/$leadId" params={{ leadId: lead.id }}>Open lead</Link></Button>
       </header>
+      {paused && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/50 px-4 py-2 text-sm">
+          <span className="text-muted-foreground">Follow-ups are paused because they replied.</span>
+          <Button size="sm" variant="outline" onClick={resume} disabled={!!saving}><Play className="size-4" /> Resume if they go quiet</Button>
+        </div>
+      )}
+      {lead.unsubscribed_at && <p className="border-b border-border bg-muted/50 px-4 py-2 text-sm text-muted-foreground">This lead unsubscribed, so LeadPilot won't email them.</p>}
       <div className="max-h-[50vh] min-h-48 flex-1 space-y-3 overflow-y-auto p-4">
         {loading && !messages.length ? <p className="text-sm text-muted-foreground">Loading…</p> : null}
         {!loading && !messages.length ? <p className="text-sm text-muted-foreground">No messages yet. Write your first one below — on WhatsApp it opens with the text ready to send.</p> : null}
         {messages.map((m) => (
           <div key={m.id} className={cn("group flex", m.direction === "out" ? "justify-end" : "justify-start")}>
             <div className={cn("max-w-[85%] rounded-xl px-3 py-2 text-sm", m.direction === "out" ? "bg-primary text-primary-foreground" : "bg-muted")}>
+              {m.subject && <p className="mb-1 font-medium">{m.subject}</p>}
               <p className="whitespace-pre-wrap break-words">{m.body}</p>
               <p className="mt-1 flex items-center gap-2 text-[11px] opacity-75">
                 {CH_LABEL[m.channel]} · {new Date(m.created_at).toLocaleString()}
@@ -142,9 +206,14 @@ function Thread({ lead, messages, loading, onChange }: { lead: LeadRow; messages
             <button key={c} onClick={() => setChannel(c)} className={cn("rounded-full border px-3 py-1 text-xs", channel === c ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground")}>{CH_LABEL[c]}</button>
           ))}
         </div>
+        {channel === "email" && canEmail && !emailedBefore && (
+          <Input value={subject} onChange={(e) => setSubject(e.target.value)} maxLength={200} placeholder="Subject" aria-label="Subject" />
+        )}
         <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3} maxLength={5000} placeholder="Write your message, or paste their reply" aria-label="Message" />
         <div className="flex flex-wrap gap-2">
-          {channel === "whatsapp" && phone ? (
+          {channel === "email" && canEmail ? (
+            <Button onClick={sendEmail} disabled={!!saving}>{saving === "email" ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />} Send email</Button>
+          ) : channel === "whatsapp" && phone ? (
             <Button onClick={() => log("out", true)} disabled={!!saving}><MessageCircle className="size-4" /> Send on WhatsApp</Button>
           ) : (
             <Button onClick={() => log("out")} disabled={!!saving}>{saving === "out" && <Loader2 className="size-4 animate-spin" />} I sent this</Button>
@@ -152,6 +221,9 @@ function Thread({ lead, messages, loading, onChange }: { lead: LeadRow; messages
           <Button variant="outline" onClick={() => log("in")} disabled={!!saving}>{saving === "in" && <Loader2 className="size-4 animate-spin" />} Save as their reply</Button>
         </div>
         {channel === "whatsapp" && !phone ? <p className="text-xs text-muted-foreground">This lead has no phone number saved, so WhatsApp can't open directly.</p> : null}
+        {channel === "email" && !canEmail && !lead.unsubscribed_at ? (
+          <p className="text-xs text-muted-foreground">{!lead.contact_email ? "Add an email address to this lead to send from LeadPilot." : "Connect a sending inbox in Settings to send emails and get replies here automatically."}</p>
+        ) : null}
       </div>
     </section>
   );

@@ -22,8 +22,11 @@ import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AppOnboardingRouteImport } from './routes/app_.onboarding'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as UnsubscribeTokenRouteImport } from './routes/unsubscribe.$token'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as ApiCronEmailRouteImport } from './routes/api.cron.email'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app_.leads.$leadId'
+import { Route as ApiEmailOauthProviderRouteImport } from './routes/api.email.oauth.$provider'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -91,14 +94,29 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
   path: '/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnsubscribeTokenRoute = UnsubscribeTokenRouteImport.update({
+  id: '/unsubscribe/$token',
+  path: '/unsubscribe/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronEmailRoute = ApiCronEmailRouteImport.update({
+  id: '/api/cron/email',
+  path: '/api/cron/email',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/app_/leads/$leadId',
   path: '/app/leads/$leadId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailOauthProviderRoute = ApiEmailOauthProviderRouteImport.update({
+  id: '/api/email/oauth/$provider',
+  path: '/api/email/oauth/$provider',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -116,8 +134,11 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/api/cron/email': typeof ApiCronEmailRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/api/email/oauth/$provider': typeof ApiEmailOauthProviderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -133,8 +154,11 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/api/cron/email': typeof ApiCronEmailRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/api/email/oauth/$provider': typeof ApiEmailOauthProviderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,8 +175,11 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/app_/onboarding': typeof AppOnboardingRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/api/cron/email': typeof ApiCronEmailRoute
   '/app_/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/api/email/oauth/$provider': typeof ApiEmailOauthProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,8 +197,11 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/app/onboarding'
     | '/invite/$token'
+    | '/unsubscribe/$token'
     | '/.lovable/oauth/consent'
+    | '/api/cron/email'
     | '/app/leads/$leadId'
+    | '/api/email/oauth/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -187,8 +217,11 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/app/onboarding'
     | '/invite/$token'
+    | '/unsubscribe/$token'
     | '/.lovable/oauth/consent'
+    | '/api/cron/email'
     | '/app/leads/$leadId'
+    | '/api/email/oauth/$provider'
   id:
     | '__root__'
     | '/'
@@ -204,8 +237,11 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/app_/onboarding'
     | '/invite/$token'
+    | '/unsubscribe/$token'
     | '/.lovable/oauth/consent'
+    | '/api/cron/email'
     | '/app_/leads/$leadId'
+    | '/api/email/oauth/$provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -222,8 +258,11 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  UnsubscribeTokenRoute: typeof UnsubscribeTokenRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  ApiCronEmailRoute: typeof ApiCronEmailRoute
   AppLeadsLeadIdRoute: typeof AppLeadsLeadIdRoute
+  ApiEmailOauthProviderRoute: typeof ApiEmailOauthProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -319,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/unsubscribe/$token': {
+      id: '/unsubscribe/$token'
+      path: '/unsubscribe/$token'
+      fullPath: '/unsubscribe/$token'
+      preLoaderRoute: typeof UnsubscribeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -326,11 +372,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/email': {
+      id: '/api/cron/email'
+      path: '/api/cron/email'
+      fullPath: '/api/cron/email'
+      preLoaderRoute: typeof ApiCronEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app_/leads/$leadId': {
       id: '/app_/leads/$leadId'
       path: '/app/leads/$leadId'
       fullPath: '/app/leads/$leadId'
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/oauth/$provider': {
+      id: '/api/email/oauth/$provider'
+      path: '/api/email/oauth/$provider'
+      fullPath: '/api/email/oauth/$provider'
+      preLoaderRoute: typeof ApiEmailOauthProviderRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -351,8 +411,11 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   InviteTokenRoute: InviteTokenRoute,
+  UnsubscribeTokenRoute: UnsubscribeTokenRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  ApiCronEmailRoute: ApiCronEmailRoute,
   AppLeadsLeadIdRoute: AppLeadsLeadIdRoute,
+  ApiEmailOauthProviderRoute: ApiEmailOauthProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

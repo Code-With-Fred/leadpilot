@@ -8,7 +8,8 @@
 - [x] Find leads business search works end-to-end
 - [x] Inbox: one conversation per lead, WhatsApp send-and-log, paste replies (verified)
 - [ ] Paid plans / checkout — blocked: needs real prices + Lovable paid plan for built-in payments
-- [ ] Automatic email sending + replies arriving by themselves — blocked: needs a verified sending domain or the Gmail connection linked
+- [x] Automatic email sending + reply sync via connected Gmail / Microsoft 365 inboxes (see docs/email-sending.md)
+- [ ] Email go-live: add Google + Microsoft OAuth keys, EMAIL_TOKEN_KEY, APP_URL, and the 5-minute cron; start Google verification (restricted Gmail scope)
 - [ ] Homepage polish for selling — waiting on prices (pricing section must match real plans)
 - [ ] Team invites end-to-end test
 - [ ] Production readiness audit: security, SEO, pricing claims, and critical user flows

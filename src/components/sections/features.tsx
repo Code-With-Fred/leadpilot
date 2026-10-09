@@ -15,7 +15,7 @@ const tabs = [
   { id: "find", label: "Find", title: "Find leads", desc: "Search by industry and location, import a CSV, or paste a list of websites.", Panel: FindPanel },
   { id: "research", label: "Research", title: "Research every prospect", desc: "LeadPilot reads each company's site and pulls out what matters before you reach out.", Panel: ResearchPanel },
   { id: "reach", label: "Reach", title: "Personalized outreach", desc: "Drafts written for each prospect, ready for you to approve or send automatically.", Panel: ReachPanel },
-  { id: "follow", label: "Follow up", title: "Follow ups that never slip", desc: "Smart sequences pause when someone replies and pick back up when they go quiet.", Panel: FollowUpPanel },
+  { id: "follow", label: "Follow up", title: "Follow ups that never slip", desc: "Sequences send from your own inbox, pause the moment someone replies, and resume in one click if they go quiet.", Panel: FollowUpPanel },
   { id: "convert", label: "Convert", title: "Book the meeting", desc: "Qualified leads get a booking link and land on your calendar.", Panel: ConvertPanel },
 ];
 

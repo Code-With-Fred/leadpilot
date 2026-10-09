@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { BusinessProfileForm } from "@/components/product/business-profile-form";
+import { EmailSendingPanel } from "@/components/product/email-sending-panel";
 import { TeamPanel } from "@/components/product/team-panel";
 import { Progress } from "@/components/ui/progress";
 import { fetchMonthlyUsage, PLAN_LIMITS, planLabel, type Workspace } from "@/lib/workspace";
@@ -20,6 +21,7 @@ export function SettingsPanel({ workspace }: { workspace: Workspace }) {
         <BusinessProfileForm workspace={workspace} />
       </section>
       <div className="space-y-6">
+      <EmailSendingPanel workspace={workspace} />
       <section className="h-fit rounded-xl border border-border bg-background p-4 sm:p-6">
         <h2 className="text-lg font-semibold">Plan and usage</h2>
         <p className="mt-1 text-sm text-muted-foreground">Current plan: <span className="font-medium text-foreground">{planLabel(workspace.plan)}</span></p>

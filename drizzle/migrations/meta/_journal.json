@@ -64,6 +64,13 @@
       "when": 1791147425946,
       "tag": "0008_lead_messages_inbox",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791580000000,
+      "tag": "0009_email_automation",
+      "breakpoints": true
     }
   ]
 }
