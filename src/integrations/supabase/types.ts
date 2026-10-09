@@ -62,8 +62,10 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          auto_send: boolean
           created_at: string
           created_by: string
+          email_account_id: string | null
           goal: string | null
           id: string
           name: string
@@ -73,8 +75,10 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          auto_send?: boolean
           created_at?: string
           created_by?: string
+          email_account_id?: string | null
           goal?: string | null
           id?: string
           name: string
@@ -84,8 +88,10 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          auto_send?: boolean
           created_at?: string
           created_by?: string
+          email_account_id?: string | null
           goal?: string | null
           id?: string
           name?: string
@@ -104,16 +110,142 @@ export type Database = {
           },
         ]
       }
+      email_accounts: {
+        Row: {
+          access_token_enc: string | null
+          access_token_expires_at: string | null
+          connected_by: string
+          created_at: string
+          daily_limit: number
+          display_name: string | null
+          email: string
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          provider: string
+          refresh_token_enc: string | null
+          status: string
+          sync_cursor: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          access_token_enc?: string | null
+          access_token_expires_at?: string | null
+          connected_by: string
+          created_at?: string
+          daily_limit?: number
+          display_name?: string | null
+          email: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          provider: string
+          refresh_token_enc?: string | null
+          status?: string
+          sync_cursor?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          access_token_enc?: string | null
+          access_token_expires_at?: string | null
+          connected_by?: string
+          created_at?: string
+          daily_limit?: number
+          display_name?: string | null
+          email?: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          provider?: string
+          refresh_token_enc?: string | null
+          status?: string
+          sync_cursor?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_accounts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_threads: {
+        Row: {
+          created_at: string
+          email_account_id: string
+          id: string
+          last_message_ref: string | null
+          lead_id: string
+          provider_thread_id: string
+          subject: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_account_id: string
+          id?: string
+          last_message_ref?: string | null
+          lead_id: string
+          provider_thread_id: string
+          subject?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          email_account_id?: string
+          id?: string
+          last_message_ref?: string | null
+          lead_id?: string
+          provider_thread_id?: string
+          subject?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_threads_email_account_id_fkey"
+            columns: ["email_account_id"]
+            isOneToOne: false
+            referencedRelation: "email_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follow_ups: {
         Row: {
           body: string
           campaign_id: string | null
           channel: string
+          claimed_at: string | null
           completed_at: string | null
           created_at: string
           created_by: string
           due_at: string
+          email_account_id: string | null
           id: string
+          last_error: string | null
           lead_id: string
           status: string
           step: number
@@ -124,11 +256,14 @@ export type Database = {
           body?: string
           campaign_id?: string | null
           channel?: string
+          claimed_at?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
           due_at: string
+          email_account_id?: string | null
           id?: string
+          last_error?: string | null
           lead_id: string
           status?: string
           step?: number
@@ -139,11 +274,14 @@ export type Database = {
           body?: string
           campaign_id?: string | null
           channel?: string
+          claimed_at?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string
           due_at?: string
+          email_account_id?: string | null
           id?: string
+          last_error?: string | null
           lead_id?: string
           status?: string
           step?: number
@@ -180,8 +318,11 @@ export type Database = {
           channel: string
           created_at: string
           direction: string
+          email_account_id: string | null
+          external_id: string | null
           id: string
           lead_id: string
+          subject: string | null
           user_id: string
           workspace_id: string
         }
@@ -190,8 +331,11 @@ export type Database = {
           channel?: string
           created_at?: string
           direction: string
+          email_account_id?: string | null
+          external_id?: string | null
           id?: string
           lead_id: string
+          subject?: string | null
           user_id?: string
           workspace_id?: string
         }
@@ -200,8 +344,11 @@ export type Database = {
           channel?: string
           created_at?: string
           direction?: string
+          email_account_id?: string | null
+          external_id?: string | null
           id?: string
           lead_id?: string
+          subject?: string | null
           user_id?: string
           workspace_id?: string
         }
@@ -288,6 +435,8 @@ export type Database = {
           score: number | null
           source: string
           stage: string
+          unsubscribe_token: string
+          unsubscribed_at: string | null
           updated_at: string
           user_id: string
           website: string | null
@@ -313,6 +462,8 @@ export type Database = {
           score?: number | null
           source?: string
           stage?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
@@ -338,6 +489,8 @@ export type Database = {
           score?: number | null
           source?: string
           stage?: string
+          unsubscribe_token?: string
+          unsubscribed_at?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
@@ -530,6 +683,7 @@ export type Database = {
       }
       workspaces: {
         Row: {
+          booking_url: string | null
           created_at: string
           created_by: string
           id: string
@@ -545,6 +699,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          booking_url?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -560,6 +715,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          booking_url?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -584,7 +740,12 @@ export type Database = {
       accept_workspace_invite: { Args: { _token: string }; Returns: Json }
       consume_ai_credit: { Args: { _kind: string }; Returns: Json }
       current_workspace_id: { Args: never; Returns: string }
+      claim_due_follow_ups: {
+        Args: { _limit: number }
+        Returns: Database["public"]["Tables"]["follow_ups"]["Row"][]
+      }
       is_workspace_member: { Args: { _ws: string }; Returns: boolean }
+      resume_lead_sequence: { Args: { _lead: string }; Returns: number }
       workspace_member_list: {
         Args: { _ws: string }
         Returns: {

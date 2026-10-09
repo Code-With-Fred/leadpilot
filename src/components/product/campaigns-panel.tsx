@@ -1,5 +1,5 @@
 import { currentWorkspaceId } from "@/lib/workspace";
-import { Loader2, Plus, Trash2, Users } from "lucide-react";
+import { Loader2, Plus, Send, Trash2, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ import type { SequenceStep } from "@/lib/outreach.functions";
 import type { SavedItem } from "@/lib/saved-outreach";
 
 type Campaign = Tables<"campaigns">;
+type Inbox = { id: string; email: string; status: string };
 const DAY = 864e5;
 const blankStep = (day: number): SequenceStep => ({ day, channel: "email", subject: "", body: "" });
 
@@ -26,14 +27,17 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
+  const [inboxes, setInboxes] = useState<Inbox[]>([]);
 
   const load = useCallback(async () => {
     setError("");
     const ws = (await currentWorkspaceId()) ?? "";
-    const [c, cl] = await Promise.all([
+    const [c, cl, ib] = await Promise.all([
       supabase.from("campaigns").select("*").eq("workspace_id", ws).order("created_at", { ascending: false }),
       supabase.from("campaign_leads").select("campaign_id").eq("workspace_id", ws).neq("status", "removed"),
+      supabase.from("email_accounts").select("id, email, status").eq("workspace_id", ws).order("created_at"),
     ]);
+    setInboxes(ib.data ?? []);
     if (c.error || cl.error) setError("Couldn't load campaigns.");
     else {
       setItems(c.data);
@@ -54,6 +58,14 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
     void load();
   }
 
+  async function setAutoSend(c: Campaign, auto_send: boolean) {
+    if (auto_send && !inboxes.some((i) => i.status === "active")) { toast.error("Connect a sending inbox in Settings first."); return; }
+    const { error } = await supabase.from("campaigns").update({ auto_send, updated_at: new Date().toISOString() }).eq("id", c.id);
+    if (error) { toast.error("Couldn't update the campaign."); return; }
+    toast.success(auto_send ? "Email steps will now send automatically" : "Auto-send is off. Due emails wait in Follow-ups.");
+    void load();
+  }
+
   async function setStatus(c: Campaign, status: Campaign["status"]) {
     const { error } = await supabase.from("campaigns").update({ status, updated_at: new Date().toISOString() }).eq("id", c.id);
     if (error) { toast.error("Couldn't update the campaign."); return; }
@@ -65,11 +77,11 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Campaigns</h2>
-          <p className="text-sm text-muted-foreground">Group leads under one follow-up plan. Each step becomes a dated task in Follow-ups.</p>
+          <p className="text-sm text-muted-foreground">Group leads under one follow-up plan. With auto-send on, email steps go out on schedule and stop when a lead replies.</p>
         </div>
         {!creating && <Button onClick={() => setCreating(true)}><Plus className="size-4" /> New campaign</Button>}
       </div>
-      {creating && <CampaignEditor onDone={() => { setCreating(false); void load(); }} />}
+      {creating && <CampaignEditor inboxes={inboxes} onDone={() => { setCreating(false); void load(); }} />}
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : error ? (
@@ -89,11 +101,13 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
                     <p className="font-medium">{c.name}</p>
                     <p className="text-sm text-muted-foreground">
                       {steps.length} steps · {counts[c.id] ?? 0} leads · <span className="capitalize">{c.status}</span>
+                      {" · "}{c.auto_send ? <span className="font-medium text-primary">Auto-send on</span> : "Manual sending"}
                       {c.goal ? ` · Goal: ${c.goal}` : ""}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="outline" onClick={() => setOpen(open === c.id ? null : c.id)}><Users className="size-4" /> Add leads</Button>
+                    <Button size="sm" variant="outline" onClick={() => setAutoSend(c, !c.auto_send)}><Send className="size-4" /> {c.auto_send ? "Turn off auto-send" : "Turn on auto-send"}</Button>
                     {c.status === "active" ? (
                       <Button size="sm" variant="outline" onClick={() => setStatus(c, "paused")}>Pause</Button>
                     ) : (
@@ -112,7 +126,10 @@ export function CampaignsPanel({ leads }: { leads: LeadRow[] }) {
   );
 }
 
-function CampaignEditor({ onDone }: { onDone: () => void }) {
+function CampaignEditor({ inboxes, onDone }: { inboxes: Inbox[]; onDone: () => void }) {
+  const active = inboxes.filter((i) => i.status === "active");
+  const [autoSend, setAutoSend] = useState(active.length > 0);
+  const [inboxId, setInboxId] = useState("");
   const [name, setName] = useState("");
   const [goal, setGoal] = useState("");
   const [steps, setSteps] = useState<SequenceStep[]>([blankStep(0), blankStep(3), blankStep(7)]);
@@ -133,7 +150,10 @@ function CampaignEditor({ onDone }: { onDone: () => void }) {
     if (!clean.length) return setError("Write at least one step message.");
     setError("");
     setSaving(true);
-    const { error } = await supabase.from("campaigns").insert({ name: name.trim().slice(0, 160), goal: goal.trim().slice(0, 300) || null, steps: clean as never, status: "active" });
+    const { error } = await supabase.from("campaigns").insert({
+      name: name.trim().slice(0, 160), goal: goal.trim().slice(0, 300) || null, steps: clean as never, status: "active",
+      auto_send: autoSend && active.length > 0, email_account_id: inboxId || null,
+    });
     setSaving(false);
     if (error) return setError("Couldn't save the campaign. Please try again.");
     toast.success("Campaign created");
@@ -173,10 +193,35 @@ function CampaignEditor({ onDone }: { onDone: () => void }) {
               <div className="min-w-40 flex-1 space-y-1"><Label className="text-xs">Subject</Label><Input value={s.subject} onChange={(e) => upd(i, { subject: e.target.value })} maxLength={200} /></div>
               <Button type="button" size="icon" variant="ghost" aria-label="Remove step" onClick={() => setSteps(steps.filter((_, j) => j !== i))}><Trash2 className="size-4" /></Button>
             </div>
-            <Textarea rows={3} value={s.body} onChange={(e) => upd(i, { body: e.target.value })} placeholder="Message or call script" maxLength={4000} />
+            <Textarea rows={3} value={s.body} onChange={(e) => upd(i, { body: e.target.value })} placeholder={i === 0 ? "Hi {{first_name}}, …" : "Message or call script. Leave the subject empty to reply in the same thread."} maxLength={4000} />
           </div>
         ))}
         {steps.length < 10 && <Button type="button" size="sm" variant="outline" onClick={() => setSteps([...steps, blankStep((steps.at(-1)?.day ?? 0) + 3)])}><Plus className="size-4" /> Add step</Button>}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Personalize with {"{{first_name}}"}, {"{{company}}"} and {"{{booking_link}}"}. Follow-up emails reply in the first email's thread.
+      </p>
+      <div className="space-y-2 rounded-lg border border-border p-3">
+        <label className="flex items-start gap-2 text-sm">
+          <input type="checkbox" className="mt-0.5" checked={autoSend && active.length > 0} disabled={!active.length} onChange={(e) => setAutoSend(e.target.checked)} />
+          <span>
+            <span className="font-medium">Send email steps automatically</span>
+            <span className="block text-xs text-muted-foreground">
+              {active.length
+                ? "Sent from your connected inbox within its daily limit. A lead's sequence pauses as soon as they reply."
+                : "Connect a sending inbox in Settings to turn this on. Until then, due emails wait in Follow-ups."}
+            </span>
+          </span>
+        </label>
+        {active.length > 1 && (
+          <div className="space-y-1">
+            <Label htmlFor="c-inbox" className="text-xs">Send from</Label>
+            <select id="c-inbox" className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm" value={inboxId} onChange={(e) => setInboxId(e.target.value)}>
+              <option value="">Rotate across all inboxes</option>
+              {active.map((i) => <option key={i.id} value={i.id}>{i.email}</option>)}
+            </select>
+          </div>
+        )}
       </div>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
@@ -191,7 +236,7 @@ function AddLeads({ campaign, leads, onDone }: { campaign: Campaign; leads: Lead
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
-  const open = leads.filter((l) => l.stage !== "won" && l.stage !== "lost" && l.company.toLowerCase().includes(q.toLowerCase()));
+  const open = leads.filter((l) => l.stage !== "won" && l.stage !== "lost" && !l.unsubscribed_at && l.company.toLowerCase().includes(q.toLowerCase()));
 
   async function add() {
     if (!picked.size) return;
@@ -229,7 +274,7 @@ function AddLeads({ campaign, leads, onDone }: { campaign: Campaign; leads: Lead
               <li key={l.id}>
                 <label className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-surface-muted">
                   <input type="checkbox" checked={picked.has(l.id)} onChange={(e) => { const n = new Set(picked); if (e.target.checked) n.add(l.id); else n.delete(l.id); setPicked(n); }} />
-                  <span className="truncate">{l.company}{l.contact_name ? ` · ${l.contact_name}` : ""}</span>
+                  <span className="truncate">{l.company}{l.contact_name ? ` · ${l.contact_name}` : ""}{!l.contact_email ? " · no email" : ""}</span>
                 </label>
               </li>
             ))}

@@ -4,7 +4,8 @@ import { CommandCenter } from "@/components/product/command-center";
 import { CopilotChat } from "@/components/product/copilot-chat";
 import { LeadsPanel } from "@/components/product/leads-panel";
 import { useLeads } from "@/lib/leads";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { OutreachDrafter } from "@/components/product/outreach-drafter";
 import { OutreachLibrary } from "@/components/product/outreach-library";
 import { SequenceBuilder } from "@/components/product/sequence-builder";
@@ -45,6 +46,18 @@ function AppPage() {
   const navigate = useNavigate();
   const { leads, loading, error } = useLeads();
   const [tab, setTab] = useState("today");
+
+  // Back from connecting a sending inbox (see /api/email/oauth/$provider).
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const connected = q.get("email_connected");
+    const failed = q.get("email_error");
+    if (!connected && !failed) return;
+    setTab("settings");
+    if (connected) toast.success(`${connected} is connected and ready to send`);
+    else toast.error(failed);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
 
   async function logout() {
     await supabase.auth.signOut();
