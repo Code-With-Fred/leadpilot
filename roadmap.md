@@ -11,3 +11,7 @@
 - [ ] Automatic email sending + replies arriving by themselves — blocked: needs a verified sending domain or the Gmail connection linked
 - [ ] Homepage polish for selling — waiting on prices (pricing section must match real plans)
 - [ ] Team invites end-to-end test
+- [ ] Production readiness audit: security, SEO, pricing claims, and critical user flows
+- [ ] Correct public marketing claims that imply automated sending, calendar booking, or paid upgrades before integrations exist
+- [ ] Add a public sitemap and complete per-page metadata for the actual public pages
+- [ ] Complete launch setup requiring an external provider decision/account: payments and end-user email sending
